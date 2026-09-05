@@ -9,7 +9,10 @@ make-pdf/dist/
 !lib/diagram-render/dist/**
 bin/gstack-global-discover*
 .gstack/
-.claude/skills/
+# Only gstack's own locally-installed skill copy is generated/local — other
+# skills under .claude/skills/ (vendored, hand-curated) are meant to be
+# committed and tracked.
+.claude/skills/gstack/
 .claude/gstack-rendered/
 .claude/scheduled_tasks.lock
 .claude/*.lock

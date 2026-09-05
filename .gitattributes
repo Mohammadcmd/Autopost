@@ -39,6 +39,11 @@ bin/*        text eol=lf
 *.ico        binary
 *.pdf        binary
 
+# Vendored *.coverage SQLite databases (e.g. under .claude/skills/**/scripts/)
+# would otherwise match the `**/scripts/* text eol=lf` rule above and get
+# corrupted by line-ending normalization on checkout.
+*.coverage   binary
+
 # The committed diagram-render bundle is hash-pinned (BUILD_INFO sha256);
 # a CRLF rewrite on Windows checkout would break the drift test and change
 # the content-addressed staged filename.
