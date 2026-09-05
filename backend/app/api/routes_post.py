@@ -11,8 +11,12 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.db.models import Decision, Event, PostRecord, PostStatus
 from app.db.session import get_session
+from app.events.base import EventInfo
+from app.posting.caption import generate_caption
 from app.posting.facebook import FacebookClient
 from app.posting.instagram import InstagramClient
+from app.posting.local_llm import LocalLLMClient
+from app.posting.style import CaptionStyle
 
 router = APIRouter(prefix="/api/events", tags=["post"])
 
@@ -34,6 +38,41 @@ class PostResult(BaseModel):
 
 def _kept_photos(event: Event) -> list:
     return [p for p in event.photos if p.decision == Decision.KEEP]
+
+
+def _event_info_from_record(event: Event) -> EventInfo | None:
+    if not event.website_event_name:
+        return None
+    return EventInfo(
+        name=event.website_event_name,
+        description=event.website_event_description or "",
+        location=event.website_event_location or "",
+        organizations=event.website_event_organizations,
+        start=event.start_time,
+        end=event.end_time,
+    )
+
+
+@router.post("/{event_id}/caption/regenerate", response_model=CaptionOut)
+def regenerate_caption(event_id: int, db: Session = Depends(get_session)) -> CaptionOut:
+    """Re-run caption drafting for an already-ingested event, e.g. after
+    editing the caption style file or pulling a different local model."""
+    event = db.get(Event, event_id)
+    if event is None:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    event_info = _event_info_from_record(event)
+    event.caption_draft = generate_caption(
+        event_info,
+        date_type.fromisoformat(event.event_date),
+        event.photo_count,
+        organizations=event.website_event_organizations,
+        hashtags=settings.caption_hashtags,
+        style=CaptionStyle.load(settings.caption_style_file),
+        llm=LocalLLMClient(settings.local_llm_base_url, settings.local_llm_model),
+    )
+    db.commit()
+    return CaptionOut(caption=event.caption_draft, kept_photo_count=len(_kept_photos(event)))
 
 
 @router.get("/{event_id}/caption", response_model=CaptionOut)

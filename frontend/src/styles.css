@@ -138,6 +138,12 @@ body {
   border: 1px solid var(--border);
 }
 
+.caption-actions {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
 #caption-box {
   width: 100%;
   padding: 0.7rem;

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import enum
+import json
 from datetime import datetime
 
 from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, Text
@@ -47,6 +48,7 @@ class Event(Base):
     website_event_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     website_event_description: Mapped[str | None] = mapped_column(Text, nullable=True)
     website_event_location: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    website_event_organizations_json: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     caption_draft: Mapped[str | None] = mapped_column(Text, nullable=True)
     post_status: Mapped[PostStatus] = mapped_column(
@@ -62,6 +64,16 @@ class Event(Base):
     @property
     def photo_count(self) -> int:
         return len(self.photos)
+
+    @property
+    def website_event_organizations(self) -> list[str]:
+        if not self.website_event_organizations_json:
+            return []
+        return json.loads(self.website_event_organizations_json)
+
+    @website_event_organizations.setter
+    def website_event_organizations(self, organizations: list[str]) -> None:
+        self.website_event_organizations_json = json.dumps(organizations) if organizations else None
 
 
 class Photo(Base):

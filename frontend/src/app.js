@@ -15,6 +15,7 @@ const undoBtn = document.getElementById("undo-btn");
 
 const keptPhotosEl = document.getElementById("kept-photos");
 const captionBox = document.getElementById("caption-box");
+const regenerateBtn = document.getElementById("regenerate-btn");
 const postBtn = document.getElementById("post-btn");
 const postResult = document.getElementById("post-result");
 
@@ -153,6 +154,22 @@ captionBox.addEventListener("change", async () => {
     method: "PUT",
     body: JSON.stringify({ caption: captionBox.value }),
   });
+});
+
+regenerateBtn.addEventListener("click", async () => {
+  regenerateBtn.disabled = true;
+  regenerateBtn.textContent = "Regenerating…";
+  try {
+    const captionData = await api(`/api/events/${currentEventId}/caption/regenerate`, {
+      method: "POST",
+    });
+    captionBox.value = captionData.caption;
+  } catch (err) {
+    postResult.textContent = `Error: ${err.message}`;
+  } finally {
+    regenerateBtn.disabled = false;
+    regenerateBtn.textContent = "↻ Regenerate caption";
+  }
 });
 
 postBtn.addEventListener("click", async () => {

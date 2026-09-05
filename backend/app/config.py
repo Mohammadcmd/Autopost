@@ -14,7 +14,7 @@ DATA_DIR = Path(os.environ.get("AUTOPOST_DATA_DIR", BASE_DIR / "data"))
 MEDIA_DIR = DATA_DIR / "media"
 
 
-def _split_paths(value: str) -> list[str]:
+def _split_csv(value: str) -> list[str]:
     return [p.strip() for p in value.split(",") if p.strip()]
 
 
@@ -22,7 +22,7 @@ def _split_paths(value: str) -> list[str]:
 class Settings:
     # Ingestion
     watch_paths: list[str] = field(
-        default_factory=lambda: _split_paths(os.environ.get("WATCH_PATHS", ""))
+        default_factory=lambda: _split_csv(os.environ.get("WATCH_PATHS", ""))
     )
     poll_interval_seconds: float = float(os.environ.get("POLL_INTERVAL_SECONDS", "3"))
     min_photos_per_event: int = int(os.environ.get("MIN_PHOTOS_PER_EVENT", "1"))
@@ -50,6 +50,16 @@ class Settings:
         "GRAPH_API_BASE_URL", "https://graph.facebook.com/v19.0"
     )
     public_base_url: str = os.environ.get("PUBLIC_BASE_URL", "")
+
+    # Caption drafting
+    local_llm_base_url: str = os.environ.get("LOCAL_LLM_BASE_URL", "http://localhost:11434")
+    local_llm_model: str = os.environ.get("LOCAL_LLM_MODEL", "llama3.2")
+    caption_style_file: str = os.environ.get(
+        "CAPTION_STYLE_FILE", str(BASE_DIR / "app" / "posting" / "caption_style.json")
+    )
+    caption_hashtags: list[str] = field(
+        default_factory=lambda: _split_csv(os.environ.get("CAPTION_HASHTAGS", ""))
+    )
 
     @property
     def meta_configured(self) -> bool:

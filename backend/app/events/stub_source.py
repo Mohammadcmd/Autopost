@@ -12,9 +12,10 @@ class StubEventSource(EventSource):
     """Matches a time window against events listed in a local JSON file.
 
     The JSON file is a list of objects: ``name``, ``description``,
-    ``location``, ``start`` (ISO 8601), ``end`` (ISO 8601). This keeps the
-    rest of the pipeline (caption drafting, the review UI) fully testable
-    before the real events website's API contract is known.
+    ``location``, ``organizations`` (list of names, optional), ``start``
+    (ISO 8601), ``end`` (ISO 8601). This keeps the rest of the pipeline
+    (caption drafting, the review UI) fully testable before the real events
+    website's API contract is known.
     """
 
     def __init__(self, events_file: str | Path) -> None:
@@ -44,6 +45,7 @@ class StubEventSource(EventSource):
                     name=raw["name"],
                     description=raw.get("description", ""),
                     location=raw.get("location", ""),
+                    organizations=raw.get("organizations", []),
                     start=event_start,
                     end=event_end,
                 )

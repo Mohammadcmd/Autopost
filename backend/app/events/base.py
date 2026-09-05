@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 
 
@@ -11,6 +11,7 @@ class EventInfo:
     name: str
     description: str = ""
     location: str = ""
+    organizations: list[str] = field(default_factory=list)
     start: datetime | None = None
     end: datetime | None = None
 

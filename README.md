@@ -23,8 +23,13 @@ with one click.
    keep, delete, or undo, with keyboard shortcuts (← delete, → keep, U undo).
 4. **Match & caption** — the photo cluster's time window is matched against
    an events website (currently a local JSON stub — see
-   [`app/events/`](backend/app/events)) to find the event's name/location,
-   and a caption is drafted from it.
+   [`app/events/`](backend/app/events)) to find the event's name, location,
+   and any organizations involved. A caption is then drafted by a local AI
+   model (see [`app/posting/local_llm.py`](backend/app/posting/local_llm.py)
+   and **Caption style** below) in your own voice, falling back to a plain
+   template if no local model is running. Either way, the location,
+   organizations, and your configured hashtags are always guaranteed to be
+   in the final caption.
 5. **Post** — after you review the caption, one click posts an Instagram
    entry (single photo or carousel) and creates a Facebook album with the
    kept photos. Without Meta credentials configured, this runs in **dry-run
@@ -60,6 +65,33 @@ that need real-world setup before they do anything live:
   at a public URL (it fetches them itself), so real posting also needs
   `PUBLIC_BASE_URL` pointed at a publicly reachable instance of this app.
   Facebook album uploads work directly from local files.
+
+## Caption style (the "local AI")
+
+Captions are drafted by a locally-running LLM so no event details or photos
+ever leave the machine:
+
+1. Install [Ollama](https://ollama.com) and pull a model, e.g.
+   `ollama pull llama3.2`.
+2. Edit [`backend/app/posting/caption_style.json`](backend/app/posting/caption_style.json)
+   (or point `CAPTION_STYLE_FILE` at your own copy):
+   - `tone_notes` — describe the voice you want in plain English (casual vs.
+     formal, typical length, emoji habits, etc).
+   - `example_captions` — a handful of captions you like the *style* of.
+     These are given to the model purely as a style reference (tone,
+     rhythm, structure) — the prompt explicitly instructs it to write
+     something new, never to reproduce them. Don't paste in captions
+     you wouldn't want closely echoed; a small local model follows a
+     reference more literally than a larger one would.
+3. Set `CAPTION_HASHTAGS` to whatever hashtag set you always want appended.
+
+If Ollama isn't running, captions fall back to a plain template. Either
+way, the drafted caption is guaranteed to mention the event's location and
+every organization the events website lists as involved, and to end with
+your configured hashtags — that enforcement happens in code
+(`app/posting/caption.py`) rather than being left up to the model. Use the
+review screen's **Regenerate caption** button to retry after changing your
+style file, without re-scanning photos.
 
 ## Known scope limits / follow-ups
 

@@ -21,6 +21,8 @@ from app.ingest.clustering import (
 )
 from app.ingest.exif import read_capture_datetime
 from app.posting.caption import generate_caption
+from app.posting.local_llm import LocalLLMClient
+from app.posting.style import CaptionStyle
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +74,7 @@ def ingest_path(root: str | Path, db: Session) -> ImportSession:
         event.website_event_name = website_event.name
         event.website_event_description = website_event.description
         event.website_event_location = website_event.location
+        event.website_event_organizations = website_event.organizations
 
     media_dir = settings.media_dir / f"session_{session.id}" / f"event_{event.id}"
     for tp in event_photos:
@@ -90,7 +93,15 @@ def ingest_path(root: str | Path, db: Session) -> ImportSession:
             )
         )
 
-    event.caption_draft = generate_caption(website_event, event_date, len(event_photos))
+    event.caption_draft = generate_caption(
+        website_event,
+        event_date,
+        len(event_photos),
+        organizations=website_event.organizations if website_event else [],
+        hashtags=settings.caption_hashtags,
+        style=CaptionStyle.load(settings.caption_style_file),
+        llm=LocalLLMClient(settings.local_llm_base_url, settings.local_llm_model),
+    )
 
     db.commit()
     db.refresh(session)

@@ -76,3 +76,37 @@ def test_stub_event_source_handles_missing_file(tmp_path):
     source = StubEventSource(tmp_path / "does_not_exist.json")
     result = source.find_event(datetime(2024, 1, 1), datetime(2024, 1, 2))
     assert result is None
+
+
+def test_stub_event_source_includes_organizations(tmp_path):
+    events_file = make_events_file(
+        tmp_path,
+        [
+            {
+                "name": "Summer Picnic",
+                "location": "Park",
+                "organizations": ["Rotary Club", "City Parks"],
+                "start": "2024-07-04T11:00:00",
+                "end": "2024-07-04T16:00:00",
+            }
+        ],
+    )
+    source = StubEventSource(events_file)
+    result = source.find_event(datetime(2024, 7, 4, 12, 0), datetime(2024, 7, 4, 14, 0))
+    assert result.organizations == ["Rotary Club", "City Parks"]
+
+
+def test_stub_event_source_defaults_organizations_to_empty_list(tmp_path):
+    events_file = make_events_file(
+        tmp_path,
+        [
+            {
+                "name": "Summer Picnic",
+                "start": "2024-07-04T11:00:00",
+                "end": "2024-07-04T16:00:00",
+            }
+        ],
+    )
+    source = StubEventSource(events_file)
+    result = source.find_event(datetime(2024, 7, 4, 12, 0), datetime(2024, 7, 4, 14, 0))
+    assert result.organizations == []

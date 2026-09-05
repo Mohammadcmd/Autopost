@@ -53,6 +53,7 @@ class WebsiteApiEventSource(EventSource):
             name=best.get("name", "Untitled Event"),
             description=best.get("description", ""),
             location=best.get("location", ""),
+            organizations=best.get("organizations", []),
             start=datetime.fromisoformat(best["start"]) if best.get("start") else None,
             end=datetime.fromisoformat(best["end"]) if best.get("end") else None,
         )
