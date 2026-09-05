@@ -15,8 +15,9 @@ from app.events.base import EventInfo
 from app.posting.caption import generate_caption
 from app.posting.facebook import FacebookClient
 from app.posting.instagram import InstagramClient
-from app.posting.local_llm import LocalLLMClient
+from app.posting.local_llm import get_default_llm_client
 from app.posting.style import CaptionStyle
+from app.posting.style_score import score_caption_style
 
 router = APIRouter(prefix="/api/events", tags=["post"])
 
@@ -24,6 +25,7 @@ router = APIRouter(prefix="/api/events", tags=["post"])
 class CaptionOut(BaseModel):
     caption: str
     kept_photo_count: int
+    style_score: float | None = None
 
 
 class CaptionUpdateRequest(BaseModel):
@@ -62,17 +64,24 @@ def regenerate_caption(event_id: int, db: Session = Depends(get_session)) -> Cap
         raise HTTPException(status_code=404, detail="Event not found")
 
     event_info = _event_info_from_record(event)
+    style = CaptionStyle.load(settings.caption_style_file)
+    llm = get_default_llm_client()
     event.caption_draft = generate_caption(
         event_info,
         date_type.fromisoformat(event.event_date),
         event.photo_count,
         organizations=event.website_event_organizations,
         hashtags=settings.caption_hashtags,
-        style=CaptionStyle.load(settings.caption_style_file),
-        llm=LocalLLMClient(settings.local_llm_base_url, settings.local_llm_model),
+        style=style,
+        llm=llm,
     )
+    event.caption_style_score = score_caption_style(event.caption_draft, style, llm)
     db.commit()
-    return CaptionOut(caption=event.caption_draft, kept_photo_count=len(_kept_photos(event)))
+    return CaptionOut(
+        caption=event.caption_draft,
+        kept_photo_count=len(_kept_photos(event)),
+        style_score=event.caption_style_score,
+    )
 
 
 @router.get("/{event_id}/caption", response_model=CaptionOut)
@@ -80,7 +89,11 @@ def get_caption(event_id: int, db: Session = Depends(get_session)) -> CaptionOut
     event = db.get(Event, event_id)
     if event is None:
         raise HTTPException(status_code=404, detail="Event not found")
-    return CaptionOut(caption=event.caption_draft or "", kept_photo_count=len(_kept_photos(event)))
+    return CaptionOut(
+        caption=event.caption_draft or "",
+        kept_photo_count=len(_kept_photos(event)),
+        style_score=event.caption_style_score,
+    )
 
 
 @router.put("/{event_id}/caption", response_model=CaptionOut)
@@ -91,8 +104,14 @@ def update_caption(
     if event is None:
         raise HTTPException(status_code=404, detail="Event not found")
     event.caption_draft = request.caption
+    style = CaptionStyle.load(settings.caption_style_file)
+    event.caption_style_score = score_caption_style(event.caption_draft, style, get_default_llm_client())
     db.commit()
-    return CaptionOut(caption=event.caption_draft, kept_photo_count=len(_kept_photos(event)))
+    return CaptionOut(
+        caption=event.caption_draft,
+        kept_photo_count=len(_kept_photos(event)),
+        style_score=event.caption_style_score,
+    )
 
 
 @router.post("/{event_id}/post", response_model=PostResult)

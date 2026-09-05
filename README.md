@@ -73,16 +73,24 @@ ever leave the machine:
 
 1. Install [Ollama](https://ollama.com) and pull a model, e.g.
    `ollama pull llama3.2`.
-2. Edit [`backend/app/posting/caption_style.json`](backend/app/posting/caption_style.json)
-   (or point `CAPTION_STYLE_FILE` at your own copy):
-   - `tone_notes` — describe the voice you want in plain English (casual vs.
-     formal, typical length, emoji habits, etc).
-   - `example_captions` — a handful of captions you like the *style* of.
-     These are given to the model purely as a style reference (tone,
-     rhythm, structure) — the prompt explicitly instructs it to write
-     something new, never to reproduce them. Don't paste in captions
-     you wouldn't want closely echoed; a small local model follows a
-     reference more literally than a larger one would.
+2. Give it your voice, either way:
+   - **Import it from your own account** — click **Import from Instagram**
+     in the app's Caption style section (or `POST /api/style/import-from-instagram`).
+     This reads your own connected Instagram Business account's own past
+     captions via the Graph API — the same access token and account this
+     app already uses to post, just reading instead of writing. It cannot
+     read anyone else's account, and it's not scraping: pulling a Business
+     account's own media is exactly what that API endpoint is for.
+   - **Or write/paste it yourself** in the same UI section, or by editing
+     [`backend/app/posting/caption_style.json`](backend/app/posting/caption_style.json)
+     directly (or pointing `CAPTION_STYLE_FILE` at your own copy):
+     - `tone_notes` — describe the voice in plain English (casual vs.
+       formal, typical length, emoji habits, etc).
+     - `example_captions` — real captions used purely as a style reference
+       (tone, rhythm, structure). The prompt explicitly instructs the model
+       to write something new, never to reproduce them — but a small local
+       model follows a reference more literally than a larger one would, so
+       only use captions from an account you're authorized to sound like.
 3. Set `CAPTION_HASHTAGS` to whatever hashtag set you always want appended.
 
 If Ollama isn't running, captions fall back to a plain template. Either
@@ -92,6 +100,17 @@ your configured hashtags — that enforcement happens in code
 (`app/posting/caption.py`) rather than being left up to the model. Use the
 review screen's **Regenerate caption** button to retry after changing your
 style file, without re-scanning photos.
+
+### Checking how close the AI's captions land
+
+Once you have example captions loaded, every drafted caption gets a **style
+match score** (shown next to the caption box) — the local model embeds both
+the generated caption and each reference example, and the score is their
+average cosine similarity. This measures how close the *voice* is (tone,
+rhythm, structure), not literal text overlap, which is deliberately never
+checked for or optimized toward. Use it to judge whether your `tone_notes`
+and examples need adjusting before you trust the AI to draft unsupervised —
+edit the style, hit **Regenerate caption**, and watch the score move.
 
 ## Known scope limits / follow-ups
 

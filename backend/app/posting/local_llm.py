@@ -17,6 +17,7 @@ import logging
 
 import requests
 
+from app.config import settings
 from app.posting.style import CaptionStyle
 
 logger = logging.getLogger(__name__)
@@ -27,9 +28,17 @@ class LocalLLMUnavailableError(Exception):
 
 
 class LocalLLMClient:
-    def __init__(self, base_url: str, model: str, *, timeout_seconds: float = 30.0) -> None:
+    def __init__(
+        self,
+        base_url: str,
+        model: str,
+        *,
+        embedding_model: str | None = None,
+        timeout_seconds: float = 30.0,
+    ) -> None:
         self._base_url = base_url.rstrip("/")
         self._model = model
+        self._embedding_model = embedding_model or model
         self._timeout_seconds = timeout_seconds
 
     def generate(self, prompt: str) -> str:
@@ -47,6 +56,33 @@ class LocalLLMClient:
         if not text:
             raise LocalLLMUnavailableError("Local model returned an empty response")
         return text
+
+    def embed(self, text: str) -> list[float]:
+        """Return an embedding vector for ``text``, used to measure how
+        close a generated caption's style is to the reference examples
+        (see ``style_score.py``) without any literal text comparison."""
+        try:
+            response = requests.post(
+                f"{self._base_url}/api/embeddings",
+                json={"model": self._embedding_model, "prompt": text},
+                timeout=self._timeout_seconds,
+            )
+            response.raise_for_status()
+        except requests.RequestException as exc:
+            raise LocalLLMUnavailableError(f"Local model at {self._base_url} is unreachable") from exc
+
+        embedding = response.json().get("embedding")
+        if not embedding:
+            raise LocalLLMUnavailableError("Local model returned an empty embedding")
+        return embedding
+
+
+def get_default_llm_client() -> LocalLLMClient:
+    return LocalLLMClient(
+        settings.local_llm_base_url,
+        settings.local_llm_model,
+        embedding_model=settings.local_embedding_model or None,
+    )
 
 
 def build_caption_prompt(

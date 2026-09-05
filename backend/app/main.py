@@ -9,7 +9,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from app.api import routes_post, routes_review, routes_sessions
+from app.api import routes_post, routes_review, routes_sessions, routes_style
 from app.db.session import SessionLocal, init_db
 from app.ingest.service import NoEventFoundError, ingest_path
 from app.ingest.watcher import StorageWatcher
@@ -51,6 +51,7 @@ app = FastAPI(title="Autopost", lifespan=lifespan)
 app.include_router(routes_sessions.router)
 app.include_router(routes_review.router)
 app.include_router(routes_post.router)
+app.include_router(routes_style.router)
 
 FRONTEND_DIR = Path(__file__).resolve().parent.parent.parent / "frontend"
 if FRONTEND_DIR.exists():

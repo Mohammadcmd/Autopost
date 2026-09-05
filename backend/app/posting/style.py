@@ -33,3 +33,9 @@ class CaptionStyle:
             tone_notes=data.get("tone_notes", ""),
             example_captions=data.get("example_captions", []),
         )
+
+    def save(self, path: str | Path) -> None:
+        path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("w") as f:
+            json.dump({"tone_notes": self.tone_notes, "example_captions": self.example_captions}, f, indent=2)

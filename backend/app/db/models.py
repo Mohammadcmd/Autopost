@@ -5,7 +5,7 @@ import enum
 import json
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy import DateTime, Enum, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -51,6 +51,7 @@ class Event(Base):
     website_event_organizations_json: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     caption_draft: Mapped[str | None] = mapped_column(Text, nullable=True)
+    caption_style_score: Mapped[float | None] = mapped_column(Float, nullable=True)
     post_status: Mapped[PostStatus] = mapped_column(
         Enum(PostStatus), default=PostStatus.NOT_STARTED
     )

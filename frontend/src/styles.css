@@ -152,5 +152,36 @@ body {
   background: var(--card-bg);
   color: var(--fg);
   font-family: inherit;
-  margin-bottom: 1rem;
+}
+
+#caption-score {
+  color: gray;
+  margin: 0.3rem 0 1rem;
+}
+
+#style-section {
+  margin-top: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.8rem;
+  background: var(--card-bg);
+}
+#style-section summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+#style-section label {
+  display: block;
+  margin: 0.8rem 0 0.3rem;
+  font-size: 0.85rem;
+  color: gray;
+}
+#style-section textarea {
+  width: 100%;
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg);
+  font-family: inherit;
 }

@@ -15,9 +15,17 @@ const undoBtn = document.getElementById("undo-btn");
 
 const keptPhotosEl = document.getElementById("kept-photos");
 const captionBox = document.getElementById("caption-box");
+const captionScore = document.getElementById("caption-score");
 const regenerateBtn = document.getElementById("regenerate-btn");
 const postBtn = document.getElementById("post-btn");
 const postResult = document.getElementById("post-result");
+
+const importStyleBtn = document.getElementById("import-style-btn");
+const importStyleStatus = document.getElementById("import-style-status");
+const toneNotesBox = document.getElementById("tone-notes-box");
+const exampleCaptionsBox = document.getElementById("example-captions-box");
+const saveStyleBtn = document.getElementById("save-style-btn");
+const saveStyleStatus = document.getElementById("save-style-status");
 
 let currentEventId = null;
 let photos = [];
@@ -146,14 +154,22 @@ async function finishReview() {
 
   const captionData = await api(`/api/events/${currentEventId}/caption`);
   captionBox.value = captionData.caption;
+  renderCaptionScore(captionData.style_score);
   postResult.textContent = "";
 }
 
+function renderCaptionScore(score) {
+  captionScore.textContent = score === null || score === undefined
+    ? "Style match: add example captions below to enable scoring."
+    : `Style match: ${score}%`;
+}
+
 captionBox.addEventListener("change", async () => {
-  await api(`/api/events/${currentEventId}/caption`, {
+  const captionData = await api(`/api/events/${currentEventId}/caption`, {
     method: "PUT",
     body: JSON.stringify({ caption: captionBox.value }),
   });
+  renderCaptionScore(captionData.style_score);
 });
 
 regenerateBtn.addEventListener("click", async () => {
@@ -164,6 +180,7 @@ regenerateBtn.addEventListener("click", async () => {
       method: "POST",
     });
     captionBox.value = captionData.caption;
+    renderCaptionScore(captionData.style_score);
   } catch (err) {
     postResult.textContent = `Error: ${err.message}`;
   } finally {
@@ -182,4 +199,43 @@ postBtn.addEventListener("click", async () => {
   }
 });
 
+async function loadStyle() {
+  const style = await api("/api/style");
+  toneNotesBox.value = style.tone_notes;
+  exampleCaptionsBox.value = style.example_captions.join("\n");
+}
+
+importStyleBtn.addEventListener("click", async () => {
+  importStyleBtn.disabled = true;
+  importStyleStatus.textContent = "Importing…";
+  try {
+    const result = await api("/api/style/import-from-instagram", { method: "POST" });
+    importStyleStatus.textContent =
+      `Imported ${result.imported_count} new caption(s) ` +
+      `(${result.total_example_count} total).`;
+    await loadStyle();
+  } catch (err) {
+    importStyleStatus.textContent = `Error: ${err.message}`;
+  } finally {
+    importStyleBtn.disabled = false;
+  }
+});
+
+saveStyleBtn.addEventListener("click", async () => {
+  saveStyleStatus.textContent = "Saving…";
+  try {
+    await api("/api/style", {
+      method: "PUT",
+      body: JSON.stringify({
+        tone_notes: toneNotesBox.value,
+        example_captions: exampleCaptionsBox.value.split("\n").map((s) => s.trim()).filter(Boolean),
+      }),
+    });
+    saveStyleStatus.textContent = "Saved.";
+  } catch (err) {
+    saveStyleStatus.textContent = `Error: ${err.message}`;
+  }
+});
+
 loadSessions();
+loadStyle();

@@ -54,6 +54,7 @@ class Settings:
     # Caption drafting
     local_llm_base_url: str = os.environ.get("LOCAL_LLM_BASE_URL", "http://localhost:11434")
     local_llm_model: str = os.environ.get("LOCAL_LLM_MODEL", "llama3.2")
+    local_embedding_model: str = os.environ.get("LOCAL_EMBEDDING_MODEL", "")
     caption_style_file: str = os.environ.get(
         "CAPTION_STYLE_FILE", str(BASE_DIR / "app" / "posting" / "caption_style.json")
     )
