@@ -7,7 +7,13 @@ make-pdf/dist/
 # diagram-render ships its built bundle (offline-at-install premise, eng-review D2)
 !lib/diagram-render/dist/
 !lib/diagram-render/dist/**
-bin/gstack-global-discover*
+# Compiled build output only — bin/gstack-global-discover.ts is real,
+# tracked source (the build.sh entry point) and must stay committed. The
+# original upstream `bin/gstack-global-discover*` glob also matched the
+# .ts source; a fresh (non-git-history-preserving) copy into another repo
+# then silently dropped it from `git add -A`, breaking the build.
+bin/gstack-global-discover
+bin/gstack-global-discover.exe
 .gstack/
 # Only gstack's own locally-installed skill copy is generated/local — other
 # skills under .claude/skills/ (vendored, hand-curated) are meant to be
