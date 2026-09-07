@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Autopost</title>
+  <link rel="stylesheet" href="/src/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>Autopost</h1>
+    <p class="subtitle">Plug in, review, post.</p>
+  </header>
+
+  <main id="app">
+    <section id="scan-screen" class="screen">
+      <h2>1. Import photos</h2>
+      <p>
+        No camera plugged in here? Point this at any folder of photos
+        (with EXIF timestamps) to simulate a freshly-inserted card.
+      </p>
+      <form id="scan-form">
+        <input type="text" id="scan-path" placeholder="/path/to/photos" required />
+        <button type="submit">Scan</button>
+      </form>
+      <p id="scan-status" class="status"></p>
+
+      <h3>Previous sessions</h3>
+      <ul id="session-list"></ul>
+
+      <details id="style-section">
+        <summary>Caption style</summary>
+        <p>
+          Captions are drafted by a local AI in this voice. Import real
+          examples from this account's own past Instagram posts, or edit
+          them directly below (one per line) — used only as a style
+          reference, never reproduced verbatim.
+        </p>
+        <button id="import-style-btn" class="btn">Import from Instagram</button>
+        <p id="import-style-status" class="status"></p>
+        <label for="tone-notes-box">Tone notes</label>
+        <textarea id="tone-notes-box" rows="3"></textarea>
+        <label for="example-captions-box">Example captions (one per line)</label>
+        <textarea id="example-captions-box" rows="6"></textarea>
+        <button id="save-style-btn" class="btn">Save style</button>
+        <p id="save-style-status" class="status"></p>
+      </details>
+    </section>
+
+    <section id="review-screen" class="screen hidden">
+      <h2>2. Review photos</h2>
+      <p id="review-progress" class="status"></p>
+      <div id="card-stack" class="card-stack"></div>
+      <div class="review-controls">
+        <button id="delete-btn" class="btn danger">✕ Delete</button>
+        <button id="undo-btn" class="btn">↺ Undo</button>
+        <button id="keep-btn" class="btn success">♥ Keep</button>
+      </div>
+      <p class="hint">Use ← to delete, → to keep, U to undo.</p>
+    </section>
+
+    <section id="post-screen" class="screen hidden">
+      <h2>3. Caption &amp; post</h2>
+      <div id="kept-photos" class="kept-photos"></div>
+      <textarea id="caption-box" rows="8"></textarea>
+      <p id="caption-score" class="status"></p>
+      <div class="caption-actions">
+        <button id="regenerate-btn" class="btn">↻ Regenerate caption</button>
+        <button id="post-btn" class="btn success">Post to Instagram &amp; Facebook</button>
+      </div>
+      <pre id="post-result" class="status"></pre>
+    </section>
+  </main>
+
+  <script src="/src/app.js"></script>
+</body>
+</html>

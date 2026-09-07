@@ -1,0 +1,10 @@
+[
+  {
+    "name": "Sample Community Picnic",
+    "description": "An example event used until the real events website API is wired up.",
+    "location": "Example Park",
+    "organizations": ["Example Nonprofit", "City Parks Department"],
+    "start": "2024-07-04T11:00:00",
+    "end": "2024-07-04T16:00:00"
+  }
+]
