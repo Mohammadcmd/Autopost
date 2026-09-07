@@ -10,3 +10,10 @@ opencv-python-headless>=4.9
 psutil>=5.9
 pytest>=8.0
 httpx>=0.27
+
+# Transitive deps with known CVEs at their otherwise-resolvable floor
+# versions (pinned here so the OSV scanner's static resolution can't land
+# on the old vulnerable release): idna (via requests/httpx/anyio) and
+# pygments (via pytest).
+idna>=3.15
+pygments>=2.20.0
